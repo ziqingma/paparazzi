@@ -23,7 +23,6 @@
 #ifndef STABILIZATION_INDI
 #define STABILIZATION_INDI
 
-#include "firmwares/rotorcraft/stabilization.h"
 #include "firmwares/rotorcraft/stabilization/stabilization_attitude_common_int.h"
 #include "firmwares/rotorcraft/stabilization/stabilization_attitude_ref_quat_int.h"
 
@@ -37,11 +36,20 @@ extern float actuator_state_filt_vect[INDI_NUM_ACT];
 
 extern bool indi_use_adaptive;
 
+extern float pivot_gain_q;
+extern float pivot_gain_theta;
+extern float pivot_servogain_q;
+extern float pivot_servogain_theta;
+extern float pivot_q;
+extern float pivot_theta;
+extern float roll_gain;
+extern float indi_Wu_motor;
+extern float indi_Wu_servo;
+
+extern float side_slip_gain_rc;
+extern bool indi_use_adaptive;
+
 extern float *Bwls[INDI_OUTPUTS];
-
-extern float act_pref[INDI_NUM_ACT];
-
-extern float indi_Wu[INDI_NUM_ACT];
 
 struct Indi_gains {
   struct FloatRates att;
@@ -49,14 +57,11 @@ struct Indi_gains {
 };
 
 extern struct Indi_gains indi_gains;
-
 extern void stabilization_indi_init(void);
 extern void stabilization_indi_enter(void);
 extern void stabilization_indi_set_failsafe_setpoint(void);
 extern void stabilization_indi_set_rpy_setpoint_i(struct Int32Eulers *rpy);
-extern void stabilization_indi_set_quat_setpoint_i(struct Int32Quat *quat);
 extern void stabilization_indi_set_earth_cmd_i(struct Int32Vect2 *cmd, int32_t heading);
-extern void stabilization_indi_set_stab_sp(struct StabilizationSetpoint *sp);
 extern void stabilization_indi_rate_run(struct FloatRates rate_ref, bool in_flight);
 extern void stabilization_indi_attitude_run(struct Int32Quat quat_sp, bool in_flight);
 extern void stabilization_indi_read_rc(bool in_flight, bool in_carefree, bool coordinated_turn);

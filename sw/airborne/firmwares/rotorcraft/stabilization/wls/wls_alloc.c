@@ -107,7 +107,7 @@ void qr_solve_wrapper(int m, int n, float** A, float* b, float* x) {
  * control vector (sqare root of gamma)
  * @param imax Max number of iterations
  *
- * @return Number of iterations
+ * @return Number of iterations, -1 upon failure
  */
 int wls_alloc(float* u, float* v, float* umin, float* umax, float** B,
     float* u_guess, float* W_init, float* Wv, float* Wu, float* up,
@@ -226,13 +226,13 @@ int wls_alloc(float* u, float* v, float* umin, float* umax, float** B,
     // check limits
     n_infeasible = 0;
     for (int i = 0; i < n_u; i++) {
-      if (u_opt[i] >= (umax[i] + 0.01) || u_opt[i] <= (umin[i] - 0.01)) {
+      if (u_opt[i] >= (umax[i] + 1.0) || u_opt[i] <= (umin[i] - 1.0)) {
         infeasible_index[n_infeasible++] = i;
       }
     }
 
     // Check feasibility of the solution
-    if (n_infeasible == 0) {
+    if (n_infeasible == 0 || n_free == 0) {
       // all variables are within limits
       memcpy(u, u_opt, n_u * sizeof(float));
       memset(lambda, 0, n_u * sizeof(float));
@@ -265,7 +265,7 @@ int wls_alloc(float* u, float* v, float* umin, float* umax, float** B,
       if (break_flag) {
 
 #if WLS_VERBOSE
-        print_final_values(n_u, n_v, u, B, v, umin, umax);
+        print_final_values(1, n_u, n_v, u, B, v, umin, umax);
 #endif
 
         // if solution is found, return number of iterations
@@ -311,7 +311,7 @@ int wls_alloc(float* u, float* v, float* umin, float* umax, float** B,
     }
   }
   // solution failed, return negative one to indicate failure
-  return iter;
+  return -1;
 }
 
 #if WLS_VERBOSE
