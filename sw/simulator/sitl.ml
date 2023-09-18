@@ -106,11 +106,11 @@ module Make (A:Data.MISSION) (FM: FlightModel.SIG) = struct
 	let _scale = GRange.scale `HORIZONTAL ~inverted:inv ~adjustment:adj ~packing:hbox#add () in
 	let update = fun () -> update_channel i adj#value in
 
-	ignore (adj#connect#value_changed ~callback:update);
+	ignore (adj#connect#value_changed update);
 	update ())
       rc_channels;
     (* github issue #821: people seems to want sliders always sensitive, even if RC is OFF *)
-    (* ignore (on_off#connect#toggled ~callback:(fun () -> sliders#coerce#misc#set_sensitive on_off#active)); *)
+    (* ignore (on_off#connect#toggled (fun () -> sliders#coerce#misc#set_sensitive on_off#active)); *)
 
     on_off#set_active false;
 
@@ -145,7 +145,7 @@ module Make (A:Data.MISSION) (FM: FlightModel.SIG) = struct
     hbox#pack bat_button#coerce;
     let tips = GData.tooltips () in
     tips#set_tip bat_button#coerce ~text:"Select for auto-decreasing voltage";
-    ignore (adj_bat#connect#value_changed ~callback:update);
+    ignore (adj_bat#connect#value_changed update);
     update ();
 
     (* Datalink status *)
@@ -154,7 +154,7 @@ module Make (A:Data.MISSION) (FM: FlightModel.SIG) = struct
     hbox#pack dl_button#coerce;
     let tips = GData.tooltips () in
     tips#set_tip dl_button#coerce ~text:"Enable/disable communication with the aircraft";
-    ignore (dl_button#connect#toggled ~callback:update);
+    ignore (dl_button#connect#toggled update);
     update();
 
     (* ADC1 *)
@@ -164,21 +164,21 @@ module Make (A:Data.MISSION) (FM: FlightModel.SIG) = struct
       let adj_adc1 = GData.adjustment ~value:512. ~lower:0. ~upper:1033. ~step_incr:1. () in
       let _scale = GRange.scale `HORIZONTAL ~adjustment:adj_adc1 ~packing:hbox#add () in
       let update = fun () -> update_adc1 (truncate adj_adc1#value) in
-      ignore (adj_adc1#connect#value_changed ~callback:update);
+      ignore (adj_adc1#connect#value_changed update);
       update ()
 
   open Latlong
 
   external set_message : string -> unit = "set_datalink_message"
   let get_message = fun name link_mode _sender vs ->
-    let set = fun rcv_id ->
+    let set = fun () ->
       let msg_id, _ = Dl_Pprz.message_of_name name in
-      let s = Dl_Pprz.payload_of_values msg_id ground_id rcv_id vs in
+      let s = Dl_Pprz.payload_of_values msg_id ground_id vs in
       set_message (Protocol.string_of_payload s) in
     let ac_id = try Some (PprzLink.int_assoc "ac_id" vs) with _ -> None in
     match link_mode, ac_id with
-      PprzLink.Forwarded, Some x when x = !my_id -> if dl_button#active then set x
-    | PprzLink.Broadcasted, _ -> if dl_button#active then set PprzLink.broadcast_id
+      PprzLink.Forwarded, Some x when x = !my_id -> if dl_button#active then set ()
+    | PprzLink.Broadcasted, _ -> if dl_button#active then set ()
     | _ -> ()
 
   let message_bind = fun name link_mode ->

@@ -169,8 +169,7 @@ let run = fun serial_port log adj i0 speed no_gui ->
         | Some channel ->
             try
               let msg_id, vs = Tm_Pprz.values_of_string m in
-              (* receiver_id lost in Ivy logs, but it was probably 0. *)
-              let payload = Tm_Pprz.payload_of_values msg_id (int_of_string ac) 0 vs in
+              let payload = Tm_Pprz.payload_of_values msg_id (int_of_string ac) vs in
               let buf = Pprz_transport.Transport.packet payload in
               Debug.call 'o' (fun f -> fprintf f "%s\n" (Debug.xprint buf));
               fprintf channel "%s%!" buf
@@ -186,7 +185,7 @@ let run = fun serial_port log adj i0 speed no_gui ->
     adj#set_value t;
     if i + 1 < Array.length log then begin
       let dt = time_of log.(i+1) -. t in
-      timer := Some (GMain.Timeout.add ~ms:(truncate (1000. *. dt /. speed#value)) ~callback:(fun () -> loop (i+1);false))
+      timer := Some (GMain.Timeout.add (truncate (1000. *. dt /. speed#value)) (fun () -> loop (i+1);false))
     end else if no_gui then
       exit 0
   in
